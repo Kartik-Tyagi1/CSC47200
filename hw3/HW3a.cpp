@@ -147,6 +147,7 @@ HW3a::paintGL()
 	glUniformMatrix4fv(m_uniform[TEXTURE][MV], 1, GL_FALSE, m_modelview.constData());
 	glUniform1f	      (m_uniform[TEXTURE][THETA], m_theta);
 	glUniform1i	      (m_uniform[TEXTURE][TWIST], m_twist);
+	glUniform1i	      (m_uniform[TEXTURE][SAMPLER],0);	// It doesn't seem like this needs to be passed
 
 	// draw texture mapped triangles
 	// PUT YOUR CODE HERE
@@ -159,9 +160,6 @@ HW3a::paintGL()
 	// draw wireframe, if necessary
 	if(m_wire) {
 		// PUT YOUR CODE HERE
-		glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer); // Data is copied in the initVertexBuffer function so that it can be accessed directly on the GPU from here
-		glEnableVertexAttribArray(ATTRIB_VERTEX);
-		glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, false, 0, NULL);
 		
 		// Change program ID to new shader
 		glUseProgram(m_program[WIREFRAME].programId());
@@ -173,11 +171,11 @@ HW3a::paintGL()
 		glUniform1i	      (m_uniform[WIREFRAME][TWIST], m_twist);
 		
 		// Draw triangles
-		for(int i = 0; i < m_numPoints; i++){
-			glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 3);
+		for(int i = 0; i < m_numPoints; i+=3){
+			// NOTE: The i+=3 otherwise all vertices connect with each other and you get weird triangles and a spiderweb type of rotation
+			// Use line loop cause triangle will fill them in white and cover the texture
+			glDrawArrays(GL_LINE_LOOP, i, (GLsizei) 3); 
 		}
-		
-
 
 	}
 	
