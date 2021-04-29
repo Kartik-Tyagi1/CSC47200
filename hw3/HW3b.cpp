@@ -177,13 +177,16 @@ HW3b::paintGL()
 		// Bind texture
 		glBindTexture(GL_TEXTURE_2D, m_texture);
 		
-		// Pass the unifroms used in the texture shader	
+		// Pass the unifroms used in the texture shader, bind the buffer and draw	
 		glUniformMatrix4fv(m_uniform[TEX_SHADER][VIEW ], 1, GL_FALSE, m_camera->view().constData());
 		glUniformMatrix4fv(m_uniform[TEX_SHADER][PROJ ], 1, GL_FALSE, m_projection.constData());
 		glUniform1i(m_uniform[TEX_SHADER][SAMPLER], 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer[0]);
 		glDrawElements(GL_TRIANGLE_STRIP, (GLsizei) m_indices_triangles.size(), GL_UNSIGNED_SHORT, 0);
+		
+		// Unbind the texture when done
 		glBindTexture(GL_TEXTURE_2D, 0);
+		
 		if(m_displayMode != TEXTURED_WIREFRAME)
 			break;
 	case WIREFRAME:
@@ -192,10 +195,10 @@ HW3b::paintGL()
 		// Change program to wire shader
 		glUseProgram(m_program[WIRE_SHADER].programId());	
 		
-		// Pass the uniforms used in the wire shader
+		// Pass the uniforms used in the wire shader, bind the buffer and draw
 		glUniformMatrix4fv(m_uniform[WIRE_SHADER][VIEW ], 1, GL_FALSE, m_camera->view().constData());
 		glUniformMatrix4fv(m_uniform[WIRE_SHADER][PROJ ], 1, GL_FALSE, m_projection.constData());
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer[1]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer[1]); 				 // NOTE: Not same indicies buffer index as texture
 		glDrawElements(GL_LINES, (GLsizei) m_indices_wireframe.size(), GL_UNSIGNED_SHORT, 0); // NOTE: not triangle size -> wireframe size
 		break;
 	case FLAT_COLOR:
