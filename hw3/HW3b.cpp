@@ -110,6 +110,21 @@ void
 HW3b::resizeGL(int w, int h)
 {
 	// PUT YOUR CODE (use perspective projection)
+	
+	// Save the window dimensions
+	m_winW = w;
+	m_winH = h;
+	
+	// Set the view to show the whole window
+	glViewport(0,0,w,h);
+	
+	// Compute the aspect ratio of the window
+	float aspect = (float) w / h;
+	
+
+	m_projection.setToIdentity(); 
+	// Use a perspective matrix and create the frustum
+	m_projection.perspective(45,aspect,0.01f,100.0f);
 }
 
 
@@ -156,11 +171,32 @@ HW3b::paintGL()
 	case TEXTURED:
 		// draw textured surface
 		// PUT YOUR CODE HERE
+		// Change program to texture shader
+		glUseProgram(m_program[TEX_SHADER].programId());
+		
+		// Bind texture
+		glBindTexture(GL_TEXTURE_2D, m_texture);
+		
+		// Pass the unifroms used in the texture shader	
+		glUniformMatrix4fv(m_uniform[TEX_SHADER][VIEW ], 1, GL_FALSE, m_camera->view().constData());
+		glUniformMatrix4fv(m_uniform[TEX_SHADER][PROJ ], 1, GL_FALSE, m_projection.constData());
+		glUniform1i(m_uniform[TEX_SHADER][SAMPLER], 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer[0]);
+		glDrawElements(GL_TRIANGLE_STRIP, (GLsizei) m_indices_triangles.size(), GL_UNSIGNED_SHORT, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 		if(m_displayMode != TEXTURED_WIREFRAME)
 			break;
 	case WIREFRAME:
 		// draw wireframe
 		// PUT YOUR CODE HERE
+		// Change program to wire shader
+		glUseProgram(m_program[WIRE_SHADER].programId());	
+		
+		// Pass the uniforms used in the wire shader
+		glUniformMatrix4fv(m_uniform[WIRE_SHADER][VIEW ], 1, GL_FALSE, m_camera->view().constData());
+		glUniformMatrix4fv(m_uniform[WIRE_SHADER][PROJ ], 1, GL_FALSE, m_projection.constData());
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesBuffer[1]);
+		glDrawElements(GL_LINES, (GLsizei) m_indices_wireframe.size(), GL_UNSIGNED_SHORT, 0); // NOTE: not triangle size -> wireframe size
 		break;
 	case FLAT_COLOR:
 		glUseProgram(m_program[FLAT_SHADER].programId());	
@@ -363,27 +399,37 @@ HW3b::resetMesh()
 				break;
 			case HOLE:
 				// PUT YOUR CODE HERE
+				vec.setZ((!((i > m_grid/3 && j > m_grid/3)&&(i < m_grid*2/3 && j < m_grid*2/3))) ? 0.5f : 0.0f);
 				break;
 			case DIAGONALWALL:
 				// PUT YOUR CODE HERE
+				vec.setZ((((m_grid-i)-j<3) && ((m_grid-i)-j>0)) ? 0.3f : 0.0f);
 				break;
 			case SIDEWALL:
 				// PUT YOUR CODE HERE
+				vec.setZ((i==1) ? 0.05f : 0.0f);
 				break;
 			case DIAGONALBLOCK:
 				// PUT YOUR CODE HERE
+				vec.setZ(((m_grid-i)-j<3) ? 0.5f : 0.0f);
 				break;
 			case MIDDLEBLOCK:
 				// PUT YOUR CODE HERE
+				vec.setZ(((i > m_grid/3 && j > m_grid/3)&&(i < m_grid*2/3 && j < m_grid*2/3)) ? 0.5f : 0.0f);
 				break;
 			case CORNERBLOCK:
 				// PUT YOUR CODE HERE
+				vec.setZ(((i > m_grid*3/4 && j > m_grid*3/4)) ? 0.5f : 0.0f);
 				break;
 			case HILL:
 				// PUT YOUR CODE HERE
+				vec.setZ((sin(M_PI * ((float)i/(float)m_grid)) +
+        				  sin(M_PI * ((float)j/(float)m_grid))) * 0.3f);
 				break;
 			case HILLFOUR:
 				// PUT YOUR CODE HERE
+				vec.setZ((sin(2 * M_PI * ((float)i/(float)m_grid)) +
+        				  sin(2 * M_PI * ((float)j/(float)m_grid))) * 0.3f);
 				break;
 		}
 	   }
